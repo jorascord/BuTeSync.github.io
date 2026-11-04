@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#3b5bfd"><link rel="icon" href="icon-192.png"><title>TerrainSync – Terrain ↔ Bureau</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f5f9;--sf:#fff;--sf2:#eef1f6;--tx:#161b26;--mu:#667085;--bd:#dde2ec;--ac:#3b5bfd;--acx:#fff;
+--c1:#e8f0ff;--c2:#e6f7ee;--c3:#fff3df;--c4:#ffe9e7;--t1:#2349c9;--t2:#12794a;--t3:#a35f00;--t4:#b3261e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f131b;--sf:#181e2a;--sf2:#212939;--tx:#e8ecf4;--mu:#98a2b8;--bd:#2b3448;--ac:#6f88ff;--acx:#0b1020;--c1:#1c2b52;--c2:#173a2b;--c3:#40300f;--c4:#4a1f1d;--t1:#9db3ff;--t2:#6fdca4;--t3:#ffc971;--t4:#ff9b94}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f131b;--sf:#181e2a;--sf2:#212939;--tx:#e8ecf4;--mu:#98a2b8;--bd:#2b3448;--ac:#6f88ff;--acx:#0b1020;--c1:#1c2b52;--c2:#173a2b;--c3:#40300f;--c4:#4a1f1d;--t1:#9db3ff;--t2:#6fdca4;--t3:#ffc971;--t4:#ff9b94}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.brand{font-weight:700;font-size:18px;margin-right:auto}.brand b{color:var(--ac)}
+.btn{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--ac)}.pri{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+select,input[type=text],textarea{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:7px 10px;width:100%}
+header select{width:auto}
+nav{display:flex;gap:4px;padding:10px 14px 0}nav button{background:none;border:0;padding:8px 14px;border-radius:10px 10px 0 0;cursor:pointer;color:var(--mu);font-weight:600}
+nav button.on{background:var(--sf);color:var(--ac);border:1px solid var(--bd);border-bottom-color:var(--sf)}
+main{padding:14px}.hide{display:none!important}
+.board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:12px}
+.col{background:var(--sf2);border:1px solid var(--bd);border-radius:14px;min-width:270px;width:270px;padding:10px;flex:none}
+.col.over{outline:2px dashed var(--ac)}
+.ch{display:flex;align-items:center;gap:6px;margin-bottom:8px}.ch h3{margin:0;font-size:14px;flex:1;outline:none;border-radius:6px;padding:2px 4px}
+.cnt{background:var(--sf);border-radius:20px;padding:0 8px;font-size:12px;color:var(--mu)}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:8px;cursor:grab}
+.card:hover{border-color:var(--ac)}.card h4{margin:6px 0 4px;font-size:14px}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px;margin-right:4px}
+.Maintenance{background:var(--c1);color:var(--t1)}.Inspection{background:var(--c2);color:var(--t2)}.Conformité{background:var(--c3);color:var(--t3)}.Vente,.Urgent{background:var(--c4);color:var(--t4)}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mu);margin-top:6px}
+.bar{height:5px;background:var(--sf2);border-radius:5px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.mv button{background:none;border:0;cursor:pointer;color:var(--mu);padding:2px 6px;font-size:14px}
+.add{width:100%;background:none;border:1px dashed var(--bd);border-radius:10px;padding:8px;color:var(--mu);cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20;display:flex;align-items:center;justify-content:center;padding:14px}
+.box{background:var(--sf);border-radius:16px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:16px;border:1px solid var(--bd)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}label{font-size:12px;color:var(--mu);display:block;margin-bottom:3px}
+.ck{display:flex;gap:8px;align-items:center;padding:4px 0}.ck input[type=checkbox]{width:18px;height:18px}
+.ph{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.ph img{width:64px;height:64px;object-fit:cover;border-radius:8px}
+.list .item{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ia{max-width:640px;margin:auto;background:var(--sf);border:1px dashed var(--ac);border-radius:16px;padding:18px}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:20px;z-index:30;font-size:14px}
+body{background:radial-gradient(1100px 480px at 8% -8%,color-mix(in srgb,var(--ac) 16%,transparent),transparent),var(--bg)}
+header{background:linear-gradient(120deg,var(--h1,#2b46d9),var(--h2,#6a45f0));border:0;box-shadow:0 4px 18px rgba(40,50,140,.28);color:#fff}
+header .btn,header select{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32);color:#fff}
+header select option{color:#161b26}
+.brand{display:flex;align-items:center;gap:8px;font-size:19px}.brand b{color:#ffd86b}
+.logo{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.2)}
+nav{gap:6px}nav button{border-radius:999px!important;border:1px solid transparent!important}
+nav button.on{background:var(--ac)!important;color:var(--acx)!important}
+.col{border-top:4px solid var(--ac);box-shadow:0 2px 10px rgba(20,30,70,.07)}
+.col:nth-child(4n+2){border-top-color:#f59e0b}.col:nth-child(4n+3){border-top-color:#8b5cf6}.col:nth-child(4n){border-top-color:#10b981}
+.card{box-shadow:0 1px 3px rgba(20,30,70,.08);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(20,30,70,.16)}
+.bar i{background:linear-gradient(90deg,#3b5bfd,#10b981)}
+.modal{backdrop-filter:blur(4px)}.box{box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:48vh;overflow:auto;margin:12px 0}
+.msg{padding:9px 12px;border-radius:14px;max-width:90%;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:var(--ac);color:var(--acx)}.msg.bot{background:var(--sf2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{background:var(--sf2);border:1px solid var(--bd);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
+.chip:hover{border-color:var(--ac)}.send{display:flex;gap:6px;margin-top:10px}
+#fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;width:54px;height:54px;border-radius:50%;border:0;font-size:24px;cursor:pointer;background:linear-gradient(135deg,#3b5bfd,#8b5cf6);box-shadow:0 8px 24px rgba(59,91,253,.45)}
+nav{overflow-x:auto;scrollbar-width:none}nav button{white-space:nowrap}
+nav button[data-t=board]::before{content:"▦ "}nav button[data-t=rep]::before{content:"📄 "}nav button[data-t=ia]::before{content:"🤖 "}nav button[data-t=dash]::before{content:"📊 "}nav button[data-t=map]::before{content:"📍 "}
+@media(max-width:700px){
+nav{position:fixed;left:0;right:0;bottom:0;z-index:12;background:var(--sf);border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));gap:2px;justify-content:space-around;box-shadow:0 -4px 16px rgba(0,0,0,.12);overflow:visible}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:6px 2px;min-width:0;border-radius:12px!important}
+nav button::before{font-size:20px;line-height:1}
+main{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+#fab{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+#mp{height:calc(100vh - 240px)!important;min-height:320px}
+header .btn{padding:6px 9px;font-size:13px}}
+main{max-width:1700px;margin:0 auto;width:100%}img{max-width:100%}
+.ia{max-width:900px;width:100%}
+.chat{max-height:calc(100vh - 430px);max-height:calc(100dvh - 430px);min-height:160px}
+@media(min-width:701px){
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));overflow-x:visible;align-items:start}
+.col{width:auto;min-width:0}
+#mp{height:calc(100vh - 200px)!important;height:calc(100dvh - 200px)!important;min-height:360px}}
+@media(max-width:700px){.board{scroll-snap-type:x mandatory}.col{scroll-snap-align:start}}
+@media(max-width:600px){.col{min-width:84vw;width:84vw}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo" id="blogo">⬡</span> <span id="bname">Terrain<b>Sync</b></span></div>
+  <select id="sector" title="Secteur"></select>
+  <button class="btn" id="tpl">📋 Modèles</button>
+  <button class="btn" id="sync">🔄 Synchro <span id="uns"></span></button>
+  <button class="btn" id="imp">⬆ Importer</button>
+  <button class="btn" id="exp">⬇ Exporter</button>
+  <button class="btn" id="lang" title="Langue">🌐 FR</button>
+  <button class="btn" id="cfg" title="Entreprise">🏢</button>
+  <button class="btn" id="theme" title="Thème">◐</button>
+  <input type="file" id="file" class="hide" accept=".json,.csv,.xlsx">
+</header>
+<nav><button data-t="board" class="on">Tableau</button><button data-t="rep">Rapports</button><button data-t="ia">Assistant IA</button><button data-t="dash">Indicateurs</button><button data-t="map">Carte</button></nav>
+<main>
+  <section id="board"><div class="board" id="cols"></div><button class="btn" id="addcol">+ Ajouter une colonne</button></section>
+  <section id="rep" class="hide list"></section>
+  <section id="ia" class="hide"><div class="ia"><h3 style="margin-top:0">🤖 Assistant TerrainSync</h3>
+    <p style="color:var(--mu);margin:0 0 8px">Je t’aide à remplir tes cartes et à suivre chaque étape, du début jusqu’à la clôture.</p>
+    <div class="chips" id="chips"></div><div class="chat" id="chat"></div>
+    <div class="send"><input type="text" id="q" placeholder="Pose ta question…"><button class="btn pri" id="go">Envoyer</button></div></div></section>
+  <section id="dash" class="hide list"></section>
+  <section id="map" class="hide"><div id="mp" style="position:relative;height:68vh;border:1px solid var(--bd);border-radius:14px;overflow:hidden;touch-action:none;background:var(--sf2)"></div><div style="font-size:12px;color:var(--mu);margin-top:6px">Maintenance bleu · Inspection vert · Conformité orange · Vente rouge · contour noir = en retard</div></section>
+</main>
+<button id="fab" title="Assistant IA">🤖</button>
+<div id="modal" class="modal hide"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const SECTORS={
+ "Télécom":{Maintenance:["Vérifier l’état des câbles et fixations","Contrôler les chambres et fourreaux","Mesurer l’affaiblissement optique"],Inspection:["Contrôler les PBO et PM","Relever les appuis et leur état","Photos avant/après"],Conformité:["Conformité au plan de projet","Étiquetage et nomenclature","Reflectométrie (OTDR) conforme"],Vente:["Qualifier le besoin du client","Établir et envoyer le devis","Suivre l’accord et la facturation"]},
+ "Construction":{Maintenance:["Contrôler l’état des équipements de chantier","Vérifier les accès et échafaudages"],Inspection:["Contrôle de l’avancement","Relevé des réserves"],Conformité:["Conformité aux plans d’exécution","Contrôle des matériaux livrés"],Vente:["Chiffrer le lot de travaux","Présenter l’offre au client","Valider le bon de commande"]},
+ "Industrie":{Maintenance:["Maintenance préventive de la machine","Lubrification et réglages","Relevé des compteurs"],Inspection:["Inspection visuelle des installations","Relevé des vibrations et températures"],Conformité:["Vérifications périodiques réglementaires","Étalonnage des instruments"],Vente:["Proposer un contrat de maintenance","Établir le devis de pièces"]},
+ "Transport":{Maintenance:["Entretien du véhicule ou de la voie","Contrôle des freins et pneumatiques"],Inspection:["Inspection de l’infrastructure","Contrôle des signalisations"],Conformité:["Contrôle réglementaire à jour","Documents de bord"],Vente:["Établir l’offre de transport","Valider les conditions avec le client"]},
+ "Commerce":{Maintenance:["Entretien du point de vente et des équipements","Contrôle de l’affichage et de la signalétique"],Inspection:["Contrôle des stocks et des rayons","Relevé de l’état du magasin"],Conformité:["Conformité des prix et de l’étiquetage","Contrôle des normes d’accueil du public"],Vente:["Préparer l’offre commerciale","Relancer le client","Suivre la commande jusqu’à la livraison"]}
+};
+const CATS=["Maintenance","Inspection","Conformité","Vente"];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const now=()=>new Date().toLocaleString("fr-FR");
+let S={sector:"Télécom",cols:[{id:"c1",name:"À faire"},{id:"c2",name:"En cours"},{id:"c3",name:"À contrôler"},{id:"c4",name:"Clôturé"}],cards:[]};
+try{const r=localStorage.getItem("terrainsync");if(r)S=JSON.parse(r)}catch(e){}
+S.cards.forEach(x=>{if(x.cat==="QHSE")x.cat="Vente";if(x.sector==="Énergie")x.sector="Commerce"});if(S.sector==="Énergie")S.sector="Commerce";
+if(!S.cards.length){S.cards=[
+ mk("Contrôle des PBO – Av. Gaston Vermeire","Inspection","c2","Terrain"),
+ mk("Mise à jour du plan DAO après relevé","Conformité","c1","Bureau"),
+ mk("Préparer le devis client – extension fibre","Vente","c1","Bureau")]}
+function mk(title,cat,col,who){return{id:uid(),title,cat,col,who,prio:"Normale",sector:"Télécom",desc:"",checks:(SECTORS["Télécom"][cat]||[]).map(t=>({t,d:false})),photos:[],log:[[now(),"Création"]],upd:Date.now(),cr:Date.now(),due:"",gps:"",sig:"",montant:"",devise:"EUR"}}
+function save(){try{localStorage.setItem("terrainsync",JSON.stringify(S))}catch(e){toast("Stockage plein : exporte ton tableau")}}
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2400)}
+const last=()=>S.cols[S.cols.length-1].id;
+const late=x=>x.due&&x.col!==last()&&x.due<new Date().toISOString().slice(0,10);
+const dt=s=>String(s||"").split(/[ ,]/)[0];
+const ini=n=>{const w=n.trim().split(/\s+/);return(w[0][0]+(w.length>1?w[w.length-1][0]:"")).toUpperCase()};
+const trail=x=>{const s=["Créé "+crd(x).slice(0,5)],cur=S.cols.findIndex(c=>c.id===x.col);S.cols.slice(1,cur+1).forEach(c=>{let d="";if(x.dates&&x.dates[c.id])d=new Date(x.dates[c.id]).toLocaleDateString("fr-FR");else if(!x.dates)(x.log||[]).forEach(l=>{if(l[1]==="Déplacée vers « "+c.name+" »")d=dt(l[0])});if(d)s.push(c.name+" "+d.slice(0,5))});return s.join(" → ")};const crd=x=>x.cr?new Date(x.cr).toLocaleDateString("fr-FR"):dt((x.log&&x.log[0]||[])[0]);
+function render(){
+ $("#sector").innerHTML='<option value="">Tous les secteurs</option>'+Object.keys(SECTORS).map(s=>`<option ${s===S.filter?"selected":""}>${s}</option>`).join("");
+ $("#cols").innerHTML=S.cols.map((c,i)=>{const cs=S.cards.filter(x=>x.col===c.id&&(!S.filter||x.sector===S.filter));
+  return `<div class="col" data-c="${c.id}"><div class="ch"><h3 contenteditable data-r="${c.id}">${esc(c.name)}</h3><span class="cnt">${cs.length}</span>${i<S.cols.length-1?`<button data-dc="${c.id}" title="Supprimer la colonne" style="background:none;border:0;cursor:pointer;color:var(--mu);font-size:15px">🗑</button>`:""}</div>
+  ${cs.map(x=>{const d=x.checks.filter(k=>k.d).length,p=x.checks.length?Math.round(100*d/x.checks.length):0;
+   return `<div class="card" draggable="true" data-id="${x.id}"><span class="tag ${x.cat}">${x.cat}</span>${x.prio==="Urgente"?'<span class="tag Urgent">Urgent</span>':""}
+   <h4>${esc(x.title)}</h4>${late(x)?'<span class="tag Urgent">⏰ En retard</span>':x.due?`<small style="color:var(--mu)">⏰ ${esc(x.due)}</small>`:""}<div class="bar"><i style="width:${p}%"></i></div>
+   <div class="meta" style="margin-top:4px"><span>📅 ${esc(trail(x))}${(x.com||[]).length?" · 💬 "+x.com.length:""}${x.rec?" · 🔁":""}</span>${(x.iv||[]).length?`<span title="${esc([...new Set(x.iv.map(p=>p.n))].join(", "))}">👥 ${[...new Set(x.iv.map(p=>ini(p.n)))].join(" ")}</span>`:""}</div>
+   <div class="meta"><span>${x.sector} · ${x.who==="Terrain"?"🛠 Terrain":"🖥 Bureau"} · ${d}/${x.checks.length}</span>
+   <span class="mv"><button data-mv="-1" title="Reculer">◀</button><button data-mv="1" title="Avancer">▶</button></span></div></div>`}).join("")}
+  <button class="add" data-add="${c.id}">+ Ajouter une carte</button></div>`}).join("");
+ const closed=S.cards.filter(x=>x.col===last());
+ $("#rep").innerHTML=(closed.length?`<div class="item"><b>${closed.length} tâche(s) clôturée(s)</b><button class="btn pri" data-gr>Rapport global</button><button class="btn pri" data-gp>PDF global</button></div>`:"")+
+  (closed.map(x=>`<div class="item"><div><span class="tag ${x.cat}">${x.cat}</span> <b>${esc(x.title)}</b><br><small style="color:var(--mu)">Clôturé le ${esc(x.closedAt||"")}</small></div><button class="btn" data-r1="${x.id}">Rapport</button><button class="btn pri" data-p1="${x.id}">PDF</button></div>`).join("")||`<p style="color:var(--mu)">Aucune tâche clôturée. Déplace une carte dans « ${esc(S.cols[S.cols.length-1].name)} » pour générer son rapport.</p>`);
+ dashR();mapDraw();const n=S.cards.filter(x=>(x.upd||0)>(S.lastSync||0)).length;$("#uns").textContent=n?"("+n+")":"";save()}
+function move(x,col){if(x.col===col)return;x.col=col;x.upd=Date.now();x.dates=x.dates||{};const i=S.cols.findIndex(c=>c.id===col);x.dates[col]=Date.now();S.cols.slice(i+1).forEach(c=>delete x.dates[c.id]);x.log.push([now(),"Déplacée vers « "+S.cols.find(c=>c.id===col).name+" »"]);
+ if(col===last()){x.closedAt=now();toast("Tâche clôturée : rapport prêt");if(x.rec&&!x.recDone){x.recDone=true;const n=mk(x.title,x.cat,S.cols[0].id,x.who);Object.assign(n,{sector:x.sector,desc:x.desc,prio:x.prio,gps:x.gps,rel:x.rel?{t:x.rel.t,v:{}}:null,rec:x.rec,devise:x.devise,checks:x.checks.map(k=>({t:k.t,d:false})),due:new Date(Date.now()+x.rec*864e5).toISOString().slice(0,10)});S.cards.push(n);toast("Clôturée · prochaine occurrence le "+n.due)}}else delete x.closedAt}
+// events
+$("#cols").addEventListener("dragstart",e=>{const c=e.target.closest(".card");if(c)e.dataTransfer.setData("t",c.dataset.id)});
+$("#cols").addEventListener("dragover",e=>{const c=e.target.closest(".col");if(c){e.preventDefault();document.querySelectorAll(".over").forEach(o=>o.classList.remove("over"));c.classList.add("over")}});
+$("#cols").addEventListener("drop",e=>{const c=e.target.closest(".col");if(!c)return;e.preventDefault();const x=S.cards.find(k=>k.id===e.dataTransfer.getData("t"));if(x){move(x,c.dataset.c);render()}});
+$("#cols").addEventListener("click",e=>{
+ const dc=e.target.closest("[data-dc]");
+ if(dc){const id=dc.dataset.dc,rest=S.cols.filter(c=>c.id!==id);if(rest.length<2)return;const n=S.cards.filter(x=>x.col===id).length;S.cards.forEach(x=>{if(x.col===id)x.col=rest[0].id});S.cols=rest;render();toast(n?n+" carte(s) déplacée(s) vers « "+rest[0].name+" »":"Colonne supprimée");return}
+ const mv=e.target.closest("[data-mv]"),card=e.target.closest(".card"),ad=e.target.closest("[data-add]");
+ if(mv){const x=S.cards.find(k=>k.id===card.dataset.id),i=S.cols.findIndex(c=>c.id===x.col),n=S.cols[i+ +mv.dataset.mv];if(n){move(x,n.id);render()}return}
+ if(ad){const x=mk("Nouvelle tâche","Inspection",ad.dataset.add,"Terrain");x.sector=S.sector;x.checks=(SECTORS[S.sector].Inspection||[]).map(t=>({t,d:false}));S.cards.push(x);render();edit(x.id);return}
+ if(card)edit(card.dataset.id)});
+$("#cols").addEventListener("focusout",e=>{const h=e.target.closest("[data-r]");if(h){S.cols.find(c=>c.id===h.dataset.r).name=h.textContent.trim()||"Colonne";save()}});
+$("#cols").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.closest("[data-r]")){e.preventDefault();e.target.blur()}});
+$("#addcol").onclick=()=>{S.cols.splice(S.cols.length-1,0,{id:uid(),name:"Nouvelle colonne"});render()};
+$("#sector").onchange=e=>{S.filter=e.target.value;if(S.filter)S.sector=S.filter;render();toast(S.filter?"Filtre : "+S.filter:"Tous les secteurs")};
+$("#theme").onclick=()=>{const d=document.documentElement,dark=getComputedStyle(d).colorScheme.includes("dark");d.dataset.theme=dark?"light":"dark"};
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(o=>o.classList.toggle("on",o===b));["board","rep","ia","dash","map"].forEach(s=>$("#"+s).classList.toggle("hide",s!==b.dataset.t));if(b.dataset.t==="map"){mapFit();mapDraw()}if(b.dataset.t==="dash")dashR();});
+// card editor
+function edit(id){const x=S.cards.find(k=>k.id===id),m=$("#modal");
+ m.classList.remove("hide");
+ m.innerHTML=`<div class="box"><label>Titre</label><input type="text" id="e_t" value="${esc(x.title)}"><div style="font-size:12px;color:var(--mu);margin:4px 0">📅 ${esc(trail(x))}<br>Créé le ${esc(crd(x))}${x.closedAt?` · ✅ Clôturé le ${esc(dt(x.closedAt))}`:""}</div>
+ <div class="row"><div><label>Catégorie</label><select id="e_c">${CATS.map(c=>`<option ${c===x.cat?"selected":""}>${c}</option>`).join("")}</select></div>
+ <div><label>Secteur</label><select id="e_s">${Object.keys(SECTORS).map(c=>`<option ${c===x.sector?"selected":""}>${c}</option>`).join("")}</select></div>
+ <div><label>Assigné à</label><select id="e_w">${["Terrain","Bureau"].map(c=>`<option ${c===x.who?"selected":""}>${c}</option>`).join("")}</select></div>
+ <div><label>Priorité</label><select id="e_p">${["Normale","Urgente"].map(c=>`<option ${c===x.prio?"selected":""}>${c}</option>`).join("")}</select></div></div>
+ <label>Description / observations terrain</label><textarea id="e_d" rows="3">${esc(x.desc)}</textarea>
+ <div style="display:flex;gap:6px;margin:6px 0;flex-wrap:wrap"><button class="btn" id="e_mic">🎙 Dicter</button><button class="btn" id="e_gps">📍 Position</button><button class="btn" id="e_go">🧭 Itinéraire</button><button class="btn" id="e_qr">▦ QR</button><button class="btn" id="e_wa">💬 Partager</button><div id="e_qrb" style="width:100%"></div><div id="e_out" style="width:100%"></div><input type="text" id="e_gi" placeholder="lat, lon (ex. 49.15, 2.27)" value="${esc(x.gps)}" style="flex:1;min-width:150px"></div>
+ <label>Échéance</label><input type="date" id="e_due" value="${esc(x.due)}" style="margin-bottom:6px">
+ <div class="row"><div><label>Client</label><input type="text" id="e_cl" value="${esc(x.client)}"></div><div><label>Adresse</label><input type="text" id="e_ad" value="${esc(x.addr)}"></div></div>
+ <label>Récurrence</label><select id="e_rec">${[["","Aucune"],["7","Chaque semaine"],["30","Chaque mois"],["90","Chaque trimestre"],["365","Chaque année"]].map(([v,l])=>`<option value="${v}" ${String(x.rec||"")===v?"selected":""}>${l}</option>`).join("")}</select>
+ <div class="row"><div><label>Montant (Vente)</label><input type="text" id="e_m" inputmode="decimal" value="${esc(x.montant)}"></div><div><label>Devise</label><select id="e_v">${["EUR","FCFA"].map(c=>`<option ${c===x.devise?"selected":""}>${c}</option>`).join("")}</select></div></div>
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><b>Checklist</b><span><button class="btn" id="e_ai">✨ Suggérer avec l’IA</button> <button class="btn" id="e_tpl">Modèle du secteur</button></span></div>
+ <div id="e_ck"></div><div style="display:flex;gap:6px;margin:6px 0"><input type="text" id="e_n" placeholder="Ajouter un point de contrôle"><button class="btn" id="e_a">+</button></div>
+ <label>Type de relevé</label><select id="e_rt"><option value="">Aucun</option>${rtKeys(x).map(k=>`<option ${x.rel&&x.rel.t===k?"selected":""}>${k}</option>`).join("")}</select><div id="e_rf"></div>
+ <b>Commentaires</b><div id="e_cm"></div>${window.TS_NAME||S.me?"":'<input type="text" id="e_cn" placeholder="Ton prénom et nom (1re fois)" style="margin:6px 0">'}<div style="display:flex;gap:6px;margin:6px 0"><input type="text" id="e_ct" placeholder="Écrire un commentaire…"><button class="btn" id="e_cs">Envoyer</button></div><br>
+ <b>Intervenants</b><div id="e_iv" class="ph" style="align-items:center"></div><div style="display:flex;gap:6px;margin:6px 0"><input type="text" id="e_in" list="e_dl" placeholder="Prénom Nom"><datalist id="e_dl">${(S.team||[]).map(n=>`<option value="${esc(n)}">`).join("")}</datalist><button class="btn" id="e_ia">Ajouter</button></div><br><b>Photos</b><div class="ph" id="e_ph"></div><input type="file" id="e_f" accept="image/*" multiple>
+ <br><b>Fichiers (DXF, PDF, plans…)</b><div id="e_fl"></div><input type="file" id="e_ff" multiple>
+ <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px"><button class="btn" id="e_x" style="color:var(--t4)">Supprimer</button><span><button class="btn" id="e_k">Fermer</button> <button class="btn pri" id="e_ok">Enregistrer</button></span></div></div>`;
+ const ck=()=>{$("#e_ck").innerHTML=x.checks.map((k,i)=>`<div class="ck"><input type="checkbox" data-i="${i}" ${k.d?"checked":""}><span style="flex:1">${esc(k.t)}</span><button class="btn" data-del="${i}">×</button></div>`).join("")};
+ const ph=()=>{$("#e_ph").innerHTML=x.photos.map(p=>`<img src="${p}" alt="Photo">`).join("")};ck();ph();
+ const sync=()=>{x.title=$("#e_t").value||"Sans titre";x.cat=$("#e_c").value;x.sector=$("#e_s").value;x.who=$("#e_w").value;x.prio=$("#e_p").value;x.desc=$("#e_d").value;x.montant=$("#e_m").value;x.devise=$("#e_v").value;x.due=$("#e_due").value;x.rec=$("#e_rec").value;x.client=$("#e_cl").value;x.addr=$("#e_ad").value;x.gps=$("#e_gi").value.trim()};
+ $("#e_ck").onclick=e=>{const c=e.target.closest("[data-i]"),d=e.target.closest("[data-del]");if(c)x.checks[c.dataset.i].d=c.checked;if(d){x.checks.splice(d.dataset.del,1);ck()}};
+ $("#e_a").onclick=()=>{const v=$("#e_n").value.trim();if(v){x.checks.push({t:v,d:false});$("#e_n").value="";ck()}};
+ $("#e_tpl").onclick=()=>{sync();(SECTORS[x.sector][x.cat]||[]).forEach(t=>{if(!x.checks.some(k=>k.t===t))x.checks.push({t,d:false})});ck()};
+ $("#e_ai").onclick=async()=>{sync();const b=$("#e_ai");b.textContent="…";try{const s=await claude.use("sample");if(!s)throw 0;const j=await s.json("Tu aides un technicien ou un bureau d’études. Secteur : "+x.sector+". Catégorie : "+x.cat+". Titre de la tâche : "+x.title+". Réponds uniquement en JSON {\"desc\":\"observation ou consigne courte en français\",\"checks\":[\"4 à 6 points de contrôle concrets et courts\"]}.",{modelTier:"quick",cache:false});if(j.desc&&!x.desc){x.desc=j.desc;$("#e_d").value=x.desc}(j.checks||[]).slice(0,6).forEach(t=>{if(!x.checks.some(k=>k.t===t))x.checks.push({t:String(t),d:false})});ck()}catch(err){toast("Assistant indisponible")}b.textContent="✨ Suggérer avec l’IA"};
+ const rf=()=>{const t=$("#e_rt").value;x.rel=t?{t,v:(x.rel&&x.rel.t===t?x.rel.v:{})}:null;$("#e_rf").innerHTML=t?(ALLR[t]||[]).map(([l,k])=>`<label>${l}</label>`+(k==="t"||k==="n"?`<input type="text" data-f="${l}" ${k==="n"?'inputmode="decimal"':""} value="${esc(x.rel.v[l])}">`:`<select data-f="${l}"><option value=""></option>${k.split("|").map(o=>`<option ${x.rel.v[l]===o?"selected":""}>${o}</option>`).join("")}</select>`)).join(""):""};rf();
+ $("#e_rt").onchange=rf;const rtr=()=>{const s=$("#e_rt");sync();if(x.rel&&!RT(x)[x.rel.t])x.rel=null;s.innerHTML='<option value="">Aucun</option>'+rtKeys(x).map(k=>`<option ${x.rel&&x.rel.t===k?"selected":""}>${k}</option>`).join("");rf()};$("#e_c").onchange=rtr;$("#e_s").onchange=rtr;const rh=e=>{const f=e.target.dataset.f;if(f&&x.rel)x.rel.v[f]=e.target.value};$("#e_rf").oninput=rh;$("#e_rf").onchange=rh;
+ const fl=()=>{$("#e_fl").innerHTML=(x.att||[]).map((a,i)=>`<div class="ck"><span style="flex:1">📎 ${a.pending?"⏳ ":""}${esc(a.n)} <small style="color:var(--mu)">${Math.round(a.s/1024)} Ko</small></span><button class="btn" data-o="${i}">Ouvrir</button><button class="btn" data-d="${i}">×</button></div>`).join("")};fl();
+ $("#e_fl").onclick=e=>{const o=e.target.closest("[data-o]"),d=e.target.closest("[data-d]");if(o){const a=x.att[o.dataset.o];if(a.pending){toast("En attente d’envoi (réseau)")}else if(a.url){window.open(a.url,"_blank")}else dl(a.n,Uint8Array.from(atob(a.d.split(",")[1]),c=>c.charCodeAt(0)))}if(d){const a=x.att[d.dataset.d];if(a.path&&window.TS_DEL)window.TS_DEL(a.path);x.att.splice(d.dataset.d,1);fl()}};
+ $("#e_ff").onchange=e=>{[...e.target.files].forEach(f=>{if(window.TS_UP){toast("Envoi de "+f.name+"…");window.TS_UP(f,x.id).then(a=>{(x.att=x.att||[]).push(a);fl()}).catch(()=>toast("Envoi impossible : réseau requis"));return}if(f.size>700*1024){toast(f.name+" dépasse 700 Ko");return}const r=new FileReader();r.onload=()=>{(x.att=x.att||[]).push({n:f.name,s:f.size,d:r.result});fl()};r.readAsDataURL(f)})};
+ $("#e_go").onclick=()=>{if(!x.gps){toast("Ajoute d’abord la position");return}window.open("https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(x.gps.replace(/\s/g,"")),"_blank")};
+ $("#e_qr").onclick=()=>{const b=$("#e_qrb");b.innerHTML="";if(!window.QRCode){toast("QR indisponible");return}new QRCode(b,{text:"TerrainSync|"+x.id+"|"+x.title+"|"+(x.gps||""),width:140,height:140})};
+ $("#e_wa").onclick=()=>{sync();const t=x.title+" ("+x.cat+", "+x.sector+")\n"+x.checks.filter(k=>k.d).length+"/"+x.checks.length+" contrôles"+(x.gps?"\n📍 "+x.gps:"")+(x.desc?"\n"+x.desc:"");if(navigator.share){navigator.share({text:t}).catch(()=>{})}else{try{navigator.clipboard.writeText(t);toast("Résumé copié : colle-le dans WhatsApp")}catch(e){toast("Partage indisponible")}}};
+ $("#e_gps").onclick=()=>{if(!navigator.geolocation){toast("Position indisponible");return}navigator.geolocation.getCurrentPosition(p=>{x.gps=p.coords.latitude.toFixed(6)+", "+p.coords.longitude.toFixed(6);$("#e_g").textContent=x.gps},()=>toast("Position indisponible"),{enableHighAccuracy:true,timeout:15000})};
+ $("#e_mic").onclick=()=>{const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){toast("Dictée non disponible");return}const r=new R();r.lang="fr-FR";r.onresult=ev=>{const d=$("#e_d");d.value+=(d.value?" ":"")+ev.results[0][0].transcript};r.onerror=()=>toast("Dictée impossible");r.start()};
+ const cm=()=>{$("#e_cm").innerHTML=(x.com||[]).map(c=>`<div style="background:var(--sf2);border-radius:10px;padding:6px 10px;margin:4px 0"><small style="color:var(--mu)">${esc(c.n)} · ${esc(new Date(c.d).toLocaleString("fr-FR"))}</small><br>${esc(c.t)}</div>`).join("")};cm();
+ $("#e_cs").onclick=()=>{const t=$("#e_ct").value.trim();if(!t)return;const n=window.TS_NAME||S.me||($("#e_cn")?$("#e_cn").value.trim().replace(/\s+/g," "):"");if(!/\S+\s\S+/.test(n)){toast("Saisis ton prénom et nom");return}S.me=n;(x.com=x.com||[]).push({n,t,d:Date.now()});x.upd=Date.now();$("#e_ct").value="";if($("#e_cn"))$("#e_cn").remove();cm();save()};
+ const iv=()=>{$("#e_iv").innerHTML=(x.iv||[]).map((p,i)=>`<span class="tag Inspection" data-x="${i}" title="${esc(p.n)} · ${esc(new Date(p.d).toLocaleString("fr-FR"))}" style="cursor:pointer;padding:5px 10px">${esc(ini(p.n))} ✕</span>`).join("")||'<small style="color:var(--mu)">Aucun intervenant</small>'};iv();
+ $("#e_iv").onclick=e=>{const t=e.target.closest("[data-x]");if(t){x.iv.splice(t.dataset.x,1);iv()}};
+ $("#e_ia").onclick=()=>{const n=$("#e_in").value.trim().replace(/\s+/g," ");if(!/\S+\s\S+/.test(n)){toast("Saisis le prénom et le nom");return}(x.iv=x.iv||[]).push({n,d:Date.now()});S.team=[...new Set([...(S.team||[]),n])];$("#e_in").value="";iv()};
+ const out=h=>{$("#e_out").innerHTML=h};
+ $("#e_gps").onclick=()=>{if(!navigator.geolocation){toast("Localisation indisponible ici : saisis lat, lon à la main");return}toast("Recherche de la position…");navigator.geolocation.getCurrentPosition(p=>{$("#e_gi").value=p.coords.latitude.toFixed(6)+", "+p.coords.longitude.toFixed(6);sync();toast("Position enregistrée")},er=>toast(er&&er.code===1?"Localisation refusée ou bloquée : saisis lat, lon à la main":"Position introuvable : saisis lat, lon à la main"),{enableHighAccuracy:true,timeout:15000,maximumAge:60000})};
+ $("#e_go").onclick=()=>{sync();if(!/^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(x.gps||"")){toast("Position invalide : format lat, lon");return}const u="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(x.gps.replace(/\s/g,""));let w=null;try{w=window.open(u,"_blank")}catch(e){}if(!w)out(`<a class="btn" href="${u}" target="_blank" rel="noopener">Ouvrir l’itinéraire dans Google Maps</a><br><small style="color:var(--mu);word-break:break-all">${esc(u)}</small>`)};
+ $("#e_qr").onclick=()=>{sync();const b=$("#e_qrb");b.innerHTML="";if(!window.QRCode){toast("Bibliothèque QR non chargée (réseau ?)");return}try{new QRCode(b,{text:"TerrainSync|"+x.id+"|"+x.title.slice(0,40)+"|"+(x.gps||""),width:150,height:150})}catch(e){toast("QR impossible")}};
+ $("#e_wa").onclick=async()=>{sync();const t=x.title+" ("+x.cat+", "+x.sector+")\n"+x.checks.filter(k=>k.d).length+"/"+x.checks.length+" contrôles"+(x.gps?"\n📍 "+x.gps:"")+(x.desc?"\n"+x.desc:"");let ok=false;if(navigator.share){try{await navigator.share({text:t});ok=true}catch(e){if(e&&e.name==="AbortError")return}}if(!ok){try{await navigator.clipboard.writeText(t);toast("Résumé copié");ok=true}catch(e){}}if(!ok)out(`<textarea rows="4" readonly style="width:100%">${esc(t)}</textarea><a class="btn" href="https://wa.me/?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">Envoyer par WhatsApp</a>`)};
+ $("#e_mic").onclick=()=>{const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){toast("Dictée non prise en charge : utilise le micro du clavier");return}const r=new R();r.lang=S.lang==="en"?"en-US":"fr-FR";r.interimResults=false;r.onstart=()=>toast("Parle maintenant…");r.onresult=ev=>{const d=$("#e_d");d.value+=(d.value?" ":"")+ev.results[0][0].transcript;toast("Texte ajouté")};r.onerror=ev=>toast(ev.error==="not-allowed"||ev.error==="service-not-allowed"?"Micro bloqué : autorise-le ou utilise le micro du clavier":"Dictée impossible ("+ev.error+")");try{r.start()}catch(e){toast("Dictée impossible")}};
+ $("#e_f").onchange=e=>{[...e.target.files].forEach(f=>{const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const s=Math.min(1,640/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);x.photos.push(c.toDataURL("image/jpeg",.7));URL.revokeObjectURL(u);ph()};im.src=u})};
+ $("#e_ok").onclick=()=>{sync();x.upd=Date.now();x.log.push([now(),"Modifiée"]);m.classList.add("hide");render()};
+ $("#e_k").onclick=()=>{m.classList.add("hide");render()};
+ $("#e_x").onclick=()=>{S.cards=S.cards.filter(k=>k.id!==id);m.classList.add("hide");render()};
+ m.onclick=e=>{if(e.target===m){sync();m.classList.add("hide");render()}}}
+// reports
+function reportHTML(list,title){const body=list.map(x=>{const d=x.checks.filter(k=>k.d).length;
+ return `<section><h2>${esc(x.title)}</h2><p><b>${x.cat}</b> · ${x.sector} · ${x.who} · Priorité ${x.prio}<br>Créé le ${esc(crd(x))} · Clôturé le ${esc(x.closedAt||"—")}</p>
+ <p>${esc(x.desc)||"<i>Aucune observation.</i>"}</p>${x.gps?`<p>📍 Position : ${esc(x.gps)}</p>`:""}${x.montant?`<p>Montant : ${esc(x.montant)} ${esc(x.devise)}</p>`:""}${x.rel?`<h3>Relevé ${esc(x.rel.t)}</h3><ul>${Object.entries(x.rel.v).filter(e=>e[1]).map(e=>`<li>${esc(e[0])} : ${esc(e[1])}</li>`).join("")}</ul>`:""}${(x.att||[]).length?`<p>📎 Fichiers joints : ${x.att.map(a=>esc(a.n)).join(", ")}</p>`:""}<h3>Contrôles (${d}/${x.checks.length})</h3><ul>${x.checks.map(k=>`<li>${k.d?"☑":"☐"} ${esc(k.t)}</li>`).join("")}</ul>
+ ${x.photos.length?`<h3>Photos</h3><p>${x.photos.map(p=>`<img src="${p}" width="180" style="margin:4px;border-radius:6px">`).join("")}</p>`:""}
+ ${(x.iv||[]).length?`<h3>Intervenants</h3><ul>${x.iv.map(p=>`<li>${esc(p.n)} – ${esc(new Date(p.d).toLocaleString("fr-FR"))}</li>`).join("")}</ul>`:""}${(x.com||[]).length?`<h3>Commentaires</h3><ul>${x.com.map(c=>`<li><b>${esc(c.n)}</b> (${esc(new Date(c.d).toLocaleString("fr-FR"))}) : ${esc(c.t)}</li>`).join("")}</ul>`:""}<h3>Historique</h3><ul>${x.log.map(l=>`<li>${esc(l[0])} – ${esc(l[1])}</li>`).join("")}</ul></section><hr>`}).join("");
+ return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font:14px/1.5 system-ui,sans-serif;max-width:780px;margin:24px auto;padding:0 16px;color:#161b26}h1{color:#3b5bfd}</style></head><body><h1>${S.brand&&S.brand.logo?`<img src="${S.brand.logo}" width="40" style="vertical-align:middle;border-radius:8px"> `:""}${esc((S.brand&&S.brand.name?S.brand.name+" – ":"")+title)}</h1><p>Généré le ${now()}</p>${body}<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js")</script>
+<script type="module" src="auth.js"></script>
+</body></html>`}
+async function dl(filename,data){const bl=new Blob([data],{type:"application/octet-stream"}),u=URL.createObjectURL(bl),l=document.createElement("a");l.href=u;l.download=filename;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+$("#rep").addEventListener("click",e=>{const p1=e.target.closest("[data-p1]");if(p1){pdfR([S.cards.find(k=>k.id===p1.dataset.p1)],"Rapport d’intervention")}if(e.target.closest("[data-gp]"))pdfR(S.cards.filter(x=>x.col===last()),"Rapport global des réalisations");const o=e.target.closest("[data-r1]");
+ if(o){const x=S.cards.find(k=>k.id===o.dataset.r1);dl("rapport-"+x.title.replace(/[^\w]+/g,"-").slice(0,40)+".html",reportHTML([x],"Rapport d’intervention"))}
+ if(e.target.closest("[data-gr]"))dl("rapport-global.html",reportHTML(S.cards.filter(x=>x.col===last()),"Rapport global des réalisations"))});
+// import / export
+$("#exp").onclick=()=>{const m=$("#modal");m.classList.remove("hide");m.innerHTML=`<div class="box"><b>Exporter</b><p style="color:var(--mu)">Choisis le format.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="x1">Tableau complet (JSON)</button><button class="btn" id="x2">Liste des tâches (CSV)</button><button class="btn" id="x4">GeoJSON (QGIS)</button><button class="btn pri" id="x5">Excel / Google Sheets</button><button class="btn" id="x3">Fermer</button></div></div>`;
+ $("#x1").onclick=()=>{dl("terrainsync.json",JSON.stringify(S,null,1));m.classList.add("hide")};
+ $("#x2").onclick=()=>{const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"',col=id=>S.cols.find(c=>c.id===id)?.name;
+  dl("taches.csv","titre;categorie;secteur;statut;assigne;priorite;description;progression;date_creation;date_cloture\n"+S.cards.map(x=>[x.title,x.cat,x.sector,col(x.col),x.who,x.prio,x.desc,x.checks.filter(k=>k.d).length+"/"+x.checks.length,crd(x),dt(x.closedAt)].map(q).join(";")).join("\n"));m.classList.add("hide")};
+ $("#x5").onclick=()=>{if(!window.XLSX){toast("Export Excel indisponible");return}const col=id=>(S.cols.find(c=>c.id===id)||{}).name||"",wb=XLSX.utils.book_new();
+ const row=x=>{const p=(x.gps||"").split(",").map(v=>v.trim());return{id:x.id,titre:x.title,categorie:x.cat,secteur:x.sector,statut:col(x.col),assigne:x.who,intervenants:[...new Set((x.iv||[]).map(p=>p.n))].join(", "),echeance:x.due||"",date_creation:crd(x),date_cloture:dt(x.closedAt),latitude:p[0]||"",longitude:p[1]||"",lien_carte:p[1]?"https://www.google.com/maps?q="+p[0]+","+p[1]:"",observations:x.desc,controles:x.checks.filter(k=>k.d).length+"/"+x.checks.length}};
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.cards.map(row)),"Tâches");
+ Object.keys(ALLR).forEach(t=>{const l=S.cards.filter(x=>x.rel&&x.rel.t===t);if(l.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(l.map(x=>({...row(x),...x.rel.v}))),t)});
+ dl("releves-terrainsync.xlsx",new Uint8Array(XLSX.write(wb,{bookType:"xlsx",type:"array"})));m.classList.add("hide")};
+ $("#x4").onclick=()=>{const f=S.cards.filter(x=>x.gps&&/,/.test(x.gps)).map(x=>{const[la,lo]=x.gps.split(",").map(Number);return{type:"Feature",geometry:{type:"Point",coordinates:[lo,la]},properties:{id:x.id,titre:x.title,categorie:x.cat,secteur:x.sector,type_releve:x.rel?x.rel.t:"",...(x.rel?x.rel.v:{}),statut:(S.cols.find(c=>c.id===x.col)||{}).name,echeance:x.due||""}}});dl("releves.geojson",JSON.stringify({type:"FeatureCollection",features:f}));m.classList.add("hide")};
+ $("#x3").onclick=()=>m.classList.add("hide")};
+$("#sync").onclick=()=>{const m=$("#modal");m.classList.remove("hide");m.innerHTML=`<div class="box"><b>Synchronisation terrain ↔ bureau</b><p style="color:var(--mu)">Sans réseau, échange un fichier (WhatsApp, e-mail, clé USB). Pour chaque tâche, la version la plus récente l’emporte.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="s1">⬇ Créer mon fichier de synchro</button><button class="btn" id="s2">⬆ Recevoir un fichier</button><button class="btn" id="s3">Fermer</button></div></div>`;
+ $("#s1").onclick=()=>{dl("synchro-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(S));S.lastSync=Date.now();m.classList.add("hide");render()};
+ $("#s2").onclick=()=>{m.classList.add("hide");$("#file").click()};$("#s3").onclick=()=>m.classList.add("hide")};
+addEventListener("offline",()=>toast("Hors ligne : tes données restent sur l’appareil"));addEventListener("online",()=>toast("Connexion revenue : pense à synchroniser"));
+$("#imp").onclick=()=>$("#file").click();
+$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;if(/\.xlsx?$/i.test(f.name)){impX(f);e.target.value="";return}const r=new FileReader();r.onload=()=>{try{
+ if(/\.json$/i.test(f.name)){const j=JSON.parse(r.result);if(!j.cols||!j.cards)throw 0;let a=0,u=0;j.cols.forEach(c=>{if(!S.cols.some(k=>k.id===c.id))S.cols.splice(S.cols.length-1,0,c)});j.cards.forEach(c=>{const o=S.cards.find(k=>k.id===c.id);if(!o){S.cards.push(c);a++}else if((c.upd||0)>(o.upd||0)){Object.assign(o,c);u++}});toast(a+" ajoutée(s), "+u+" mise(s) à jour")}
+ else{const rows=r.result.split(/\r?\n/).filter(Boolean).slice(1);rows.forEach(l=>{const c=l.split(/;|,/).map(v=>v.replace(/^"|"$/g,"").trim());
+  const cat=CATS.includes(c[1])?c[1]:"Inspection",x=mk(c[0]||"Tâche importée",cat,S.cols[0].id,"Terrain");x.sector=SECTORS[c[2]]?c[2]:S.sector;x.desc=c[3]||"";x.checks=(SECTORS[x.sector][cat]||[]).map(t=>({t,d:false}));S.cards.push(x)})}
+ render();toast("Import réussi")}catch(err){toast("Fichier non reconnu")}};r.readAsText(f);e.target.value=""};
+// assistant
+const GUIDE="Étapes d’une tâche, du début à la clôture :\n1. Créer la carte : titre clair, catégorie, secteur, Terrain ou Bureau.\n2. Charger le modèle du secteur (ou « Suggérer avec l’IA ») pour la checklist.\n3. Terrain : relever, cocher les contrôles, ajouter photos et observations.\n4. Passer la carte en « À contrôler ».\n5. Bureau : vérifier les relevés, mettre à jour le plan, corriger si besoin.\n6. Clôturer : toutes les cases cochées, puis déplacer la carte dans la dernière colonne. Le rapport est alors prêt.";
+const ctx=()=>"Secteur actuel : "+S.sector+". Colonnes : "+S.cols.map(c=>c.name).join(" > ")+". Tâches : "+S.cards.map(x=>x.title+" ("+x.cat+", "+(S.cols.find(c=>c.id===x.col)||{}).name+", "+x.checks.filter(k=>k.d).length+"/"+x.checks.length+" contrôles)").join(" ; ");
+function say(r,t){const d=document.createElement("div");d.className="msg "+r;d.textContent=t;$("#chat").appendChild(d);d.scrollIntoView({block:"end"});return d}
+async function ask(q){if(!q.trim())return;say("me",q);$("#q").value="";const w=say("bot","…");
+ try{const s=await claude.use("sample");if(!s)throw 0;const r=await s("Tu es l’assistant de TerrainSync, plateforme terrain/bureau (télécom, construction, industrie, transport, commerce) avec les catégories Maintenance, Inspection, Conformité et Vente. Les colonnes vont de la création à la clôture, qui génère un rapport. Réponds en français, court et concret, en étapes numérotées si utile. Contexte : "+ctx()+"\nQuestion : "+q,{modelTier:"quick",cache:false});w.textContent=r.text}
+ catch(e){w.textContent=GUIDE}}
+$("#chips").innerHTML=["Étapes du début à la clôture","Que vérifier avant de clôturer ?","Aide-moi à remplir ma carte"].map(t=>`<button class="chip">${t}</button>`).join("");
+$("#chips").onclick=e=>{const c=e.target.closest(".chip");if(c)ask(c.textContent)};
+$("#go").onclick=()=>ask($("#q").value);$("#q").onkeydown=e=>{if(e.key==="Enter")ask($("#q").value)};
+const REL={PBO:[["Référence","t"],["Capacité","6|12"],["Pose","Chambre|Façade|Aérien"],["Adresse","t"],["État du boîtier","Bon|Dégradé|À remplacer"],["Fibres utilisées","n"]],Chambre:[["Référence","t"],["Type","L1T|L2T|L3T|K2C"],["État du tampon","Bon|Dégradé|Cassé"],["Encombrement","Libre|Partiel|Obstrué"],["Fourreaux libres","n"]],Appui:[["Référence","t"],["Type","Bois|Béton|Métal"],["Hauteur (m)","n"],["Propriétaire","Orange|Enedis|Commune|Autre"],["État","Bon|À surveiller|Dangereux"]],PM:[["Référence","t"],["Capacité (prises)","n"],["Emplacement","t"],["État","Bon|Dégradé"]],Câble:[["Référence","t"],["Capacité (fibres)","12|24|48|72|144"],["Pose","Souterrain|Aérien|Façade"],["Longueur (m)","n"],["Affaiblissement (dB)","n"]]};
+const VR={Devis:[["Référence","t"],["Client","t"],["Montant","n"],["Devise","EUR|FCFA"],["Statut","Brouillon|Envoyé|Accepté|Refusé"]],Commande:[["N° commande","t"],["Client","t"],["Montant","n"],["Statut","À préparer|Expédiée|Livrée|Facturée"]],Prospect:[["Contact","t"],["Besoin","t"],["Intérêt","Faible|Moyen|Fort"],["Relance prévue","t"]]};
+const RELS={"Télécom":REL,
+"Construction":{Ouvrage:[["Référence","t"],["Zone","t"],["Avancement (%)","n"],["État","Conforme|Réserve|Non conforme"]],Matériaux:[["Référence","t"],["Fournisseur","t"],["Quantité","n"],["Livraison","Conforme|Écart"]],Sécurité:[["Zone","t"],["Risque","t"],["Mesure prise","t"],["État","OK|À corriger"]]},
+"Industrie":{Machine:[["Référence","t"],["Atelier","t"],["État","Bon|À surveiller|En panne"],["Heures de marche","n"]],Mesure:[["Référence","t"],["Instrument","t"],["Valeur mesurée","n"],["Conformité","Conforme|Non conforme"]]},
+"Transport":{Véhicule:[["Immatriculation","t"],["Kilométrage","n"],["État","Bon|À surveiller|Hors service"],["Pneumatiques","Bon|Usés"]],Infrastructure:[["Référence","t"],["Type","Voie|Signalisation|Ouvrage"],["État","Bon|Dégradé|Dangereux"]]},
+"Commerce":{Stockage:[["Référence article","t"],["Emplacement","t"],["Quantité en stock","n"],["Seuil d’alerte","n"],["État","Conforme|Rupture|Surstock"]],Rayon:[["Rayon","t"],["Produit","t"],["Prix affiché","n"],["Conformité prix","Conforme|Écart"]],Livraison:[["N° commande","t"],["Transporteur","t"],["Quantité","n"],["Statut","Prévue|En cours|Livrée|Retard"]]}};
+const ALLR=Object.assign({},...Object.values(RELS),VR);
+const RT=x=>({...(RELS[x.sector]||{}),...(x.cat==="Vente"?VR:{})});
+const rtKeys=x=>[...new Set([...Object.keys(RT(x)),...(x.rel?[x.rel.t]:[])])];
+const EN={"Importer":"Import","Exporter":"Export","Tableau":"Board","Rapports":"Reports","Rapport global":"Global report","Rapport":"Report","Assistant IA":"AI assistant","Assistant TerrainSync":"TerrainSync assistant","Tous les secteurs":"All sectors","Ajouter une carte":"Add a card","Ajouter une colonne":"Add a column","Description / observations terrain":"Description / field notes","Titre":"Title","Catégorie":"Category","Secteur":"Sector","Assigné à":"Assigned to","Priorité":"Priority","Supprimer":"Delete","Fermer":"Close","Enregistrer":"Save","Conformité":"Compliance","Vente":"Sales","Terrain":"Field","Bureau":"Office","Envoyer":"Send","Équipe":"Team","Effacer":"Clear","Échéance":"Due date","Devise":"Currency","Montant":"Amount","Signature du client":"Client signature","Position":"Location","Dicter":"Dictate","Partager":"Share","Fichiers":"Files","Ouvrir":"Open","Réglages":"Settings","Intervenants":"Contributors","Indicateurs":"Dashboard","Carte":"Map","Commentaires":"Comments","Modèles":"Templates","Ajouter":"Add","Langue":"Language","Nom de l’entreprise":"Company name","Couleur principale":"Main color","Appliquer":"Apply","Réinitialiser":"Reset","Type de relevé":"Survey type","Aucun":"None","Synchro":"Sync","En retard":"Overdue","Suggérer avec l’IA":"Suggest with AI","Modèle du secteur":"Sector template","Recevoir un fichier":"Receive a file","Créer mon fichier de synchro":"Create my sync file","Exporter":"Export","Tableau complet":"Full board","Liste des tâches":"Task list"};
+const MP={z:15,lat:49.15,lon:2.27,drag:null,raf:0,ps:{},d0:0};
+const px=(lat,lon,z)=>{const n=256*2**z,s=Math.sin(lat*Math.PI/180);return[(lon+180)/360*n,(0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n]};
+const unpx=(x,y,z)=>{const n=256*2**z;return[Math.atan(Math.sinh(Math.PI*(1-2*y/n)))*180/Math.PI,x/n*360-180]};
+const MC={Maintenance:"#3b5bfd",Inspection:"#10b981",Conformité:"#f59e0b",Vente:"#ef4444"};
+function pts(){return S.cards.filter(x=>x.gps&&/,/.test(x.gps)&&(!S.filter||x.sector===S.filter)).map(x=>{const[la,lo]=x.gps.split(",").map(Number);return{x,la,lo}}).filter(p=>isFinite(p.la)&&isFinite(p.lo))}
+function mapFit(){const P=pts();if(!P.length)return;const la=P.map(p=>p.la),lo=P.map(p=>p.lo);MP.lat=(Math.min(...la)+Math.max(...la))/2;MP.lon=(Math.min(...lo)+Math.max(...lo))/2;const el=$("#mp"),w=el.clientWidth||300,h=el.clientHeight||400;let z=18;for(;z>3;z--){const a=px(Math.max(...la),Math.min(...lo),z),b=px(Math.min(...la),Math.max(...lo),z);if(b[0]-a[0]<w-80&&b[1]-a[1]<h-80)break}MP.z=Math.min(z,17)}
+function mapDraw(){const el=$("#mp");if(!el||el.offsetParent===null)return;const w=el.clientWidth,h=el.clientHeight,[cx,cy]=px(MP.lat,MP.lon,MP.z),n=2**MP.z,P=pts();let H="";
+ for(let tx=Math.floor((cx-w/2)/256);tx<=Math.floor((cx+w/2)/256);tx++)for(let ty=Math.floor((cy-h/2)/256);ty<=Math.floor((cy+h/2)/256);ty++){if(ty<0||ty>=n)continue;const X=((tx%n)+n)%n;H+=`<img src="https://tile.openstreetmap.org/${MP.z}/${X}/${ty}.png" alt="" draggable="false" onerror="this.remove()" style="position:absolute;left:${Math.round(tx*256-cx+w/2)}px;top:${Math.round(ty*256-cy+h/2)}px;width:256px;height:256px">`}
+ P.forEach(p=>{const[a,b]=px(p.la,p.lo,MP.z);H+=`<div data-m="${p.x.id}" title="${esc(p.x.title)}" style="position:absolute;left:${Math.round(a-cx+w/2)-11}px;top:${Math.round(b-cy+h/2)-11}px;width:22px;height:22px;border-radius:50%;background:${MC[p.x.cat]||"#3b5bfd"};border:3px solid ${late(p.x)?"#000":"#fff"};box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer"></div>`});
+ el.innerHTML=H+`<div style="position:absolute;right:6px;bottom:4px;font-size:10px;background:rgba(255,255,255,.85);color:#222;padding:1px 5px;border-radius:4px">© OpenStreetMap</div><div style="position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:6px"><button class="btn" data-z="1">+</button><button class="btn" data-z="-1">−</button><button class="btn" data-z="0">⌖</button></div>`+(P.length?"":`<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mu)">Aucune tâche avec position GPS.<br>Utilise le bouton 📍 dans une tâche.</div>`)}
+{const el=$("#mp");
+ el.onpointerdown=e=>{if(e.target.closest("[data-z],[data-m]"))return;MP.drag=[e.clientX,e.clientY];MP.ps[e.pointerId]=[e.clientX,e.clientY];MP.d0=0;el.setPointerCapture(e.pointerId)};
+ el.onpointermove=e=>{if(MP.ps[e.pointerId])MP.ps[e.pointerId]=[e.clientX,e.clientY];const ks=Object.keys(MP.ps);if(ks.length===2){const[a,b]=ks.map(k=>MP.ps[k]),d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(!MP.d0)MP.d0=d;else if(d/MP.d0>1.5){MP.z=Math.min(19,MP.z+1);MP.d0=d;mapDraw()}else if(d/MP.d0<.67){MP.z=Math.max(3,MP.z-1);MP.d0=d;mapDraw()}return}if(!MP.drag)return;const dx=e.clientX-MP.drag[0],dy=e.clientY-MP.drag[1];MP.drag=[e.clientX,e.clientY];const[cx,cy]=px(MP.lat,MP.lon,MP.z);[MP.lat,MP.lon]=unpx(cx-dx,cy-dy,MP.z);if(!MP.raf)MP.raf=requestAnimationFrame(()=>{MP.raf=0;mapDraw()})};
+ el.onpointerup=el.onpointercancel=e=>{delete MP.ps[e.pointerId];MP.d0=0;MP.drag=null};
+ el.onwheel=e=>{e.preventDefault();MP.z=Math.max(3,Math.min(19,MP.z+(e.deltaY<0?1:-1)));mapDraw()};
+ el.onclick=e=>{const z=e.target.closest("[data-z]"),m=e.target.closest("[data-m]");if(z){const v=+z.dataset.z;if(v)MP.z=Math.max(3,Math.min(19,MP.z+v));else mapFit();mapDraw()}if(m)edit(m.dataset.m)}}
+const PROJ={"Déploiement FTTH d’une rue":[["Repérage terrain et relevé des appuis","Inspection","Appui"],["Relevé des chambres et fourreaux","Inspection","Chambre"],["Plan de projet DAO","Conformité"],["Pose des câbles","Maintenance","Câble"],["Installation des PBO","Maintenance","PBO"],["Contrôle OTDR et conformité","Conformité","Câble"],["Devis et suivi client","Vente"]],
+"Maintenance préventive d’un site":[["Inspection générale","Inspection"],["Entretien des équipements","Maintenance"],["Contrôle de conformité","Conformité"],["Proposition de contrat","Vente"]],
+"Lancement d’un chantier":[["Visite de site","Inspection"],["Chiffrage et devis","Vente"],["Vérification des plans","Conformité"],["Préparation du matériel","Maintenance"]],
+"Inventaire d’un point de vente":[["Comptage du stock","Inspection","Stockage"],["Contrôle des prix en rayon","Conformité","Rayon"],["Réassort et commande","Vente","Commande"],["Suivi des livraisons","Maintenance","Livraison"]]};
+$("#tpl").onclick=()=>{const m=$("#modal"),all={...PROJ,...(S.tpl||{})};m.classList.remove("hide");m.onclick=e=>{if(e.target===m)m.classList.add("hide")};
+ m.innerHTML=`<div class="box"><b>Modèles de projet</b><label style="margin-top:8px">Modèle</label><select id="p_t">${Object.keys(all).map(k=>`<option>${esc(k)}</option>`).join("")}</select><label style="margin-top:8px">Nom du chantier (ou du modèle à enregistrer)</label><input type="text" id="p_n" placeholder="Ex. Avenue Gaston Vermeire"><label style="margin-top:8px">Date de début (échéances : +2 jours par tâche)</label><input type="date" id="p_d"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap"><button class="btn" id="p_s">Enregistrer ma 1re colonne comme modèle</button><button class="btn pri" id="p_c">Créer les tâches</button></div></div>`;
+ $("#p_c").onclick=()=>{const nm=$("#p_n").value.trim(),d0=$("#p_d").value,L=all[$("#p_t").value];if(!nm){toast("Saisis le nom du chantier");return}
+  L.forEach(([t,cat,rel],i)=>{const x=mk(nm+" – "+t,cat,S.cols[0].id,"Terrain");x.sector=S.sector;x.checks=((SECTORS[S.sector]||{})[cat]||[]).map(k=>({t:k,d:false}));if(rel&&RT(x)[rel])x.rel={t:rel,v:{}};if(d0){const d=new Date(d0);d.setDate(d.getDate()+2*i);x.due=d.toISOString().slice(0,10)}S.cards.push(x)});
+  render();m.classList.add("hide");toast(L.length+" tâches créées")};
+ $("#p_s").onclick=()=>{const nm=$("#p_n").value.trim(),L=S.cards.filter(x=>x.col===S.cols[0].id);if(!nm||!L.length){toast("Nom du modèle et tâches requis");return}(S.tpl=S.tpl||{})[nm]=L.map(x=>[x.title,x.cat,x.rel?x.rel.t:null]);save();toast("Modèle « "+nm+" » enregistré");m.classList.add("hide")}};
+function pdfR(list,title){if(!window.jspdf){toast("PDF indisponible");return}const d=new window.jspdf.jsPDF();let y=18;
+ const tx=(t,sz,b)=>{d.setFontSize(sz);d.setFont("helvetica",b?"bold":"normal");d.splitTextToSize(String(t),180).forEach(l=>{if(y>280){d.addPage();y=18}d.text(l,15,y);y+=sz*.45})};
+ const br=S.brand||{};if(br.logo){try{d.addImage(br.logo,"PNG",15,10,14,14)}catch(e){}}
+ d.setFontSize(16);d.setFont("helvetica","bold");d.text((br.name?br.name+" - ":"")+title,br.logo?33:15,19);y=34;
+ list.forEach(x=>{tx(x.title,13,1);tx(x.cat+" | "+x.sector+" | "+x.who+" | Priorité "+x.prio,9);tx("Créé le "+crd(x)+" | Clôturé le "+dt(x.closedAt||"—"),9);
+  if(x.desc)tx(x.desc,10);tx("Contrôles "+x.checks.filter(k=>k.d).length+"/"+x.checks.length,10,1);x.checks.forEach(k=>tx((k.d?"[x] ":"[ ] ")+k.t,9));
+  if(x.rel){tx("Relevé "+x.rel.t,10,1);Object.entries(x.rel.v).filter(e=>e[1]).forEach(e=>tx(e[0]+" : "+e[1],9))}
+  if((x.iv||[]).length){tx("Intervenants",10,1);x.iv.forEach(p=>tx(p.n+" - "+new Date(p.d).toLocaleString("fr-FR"),9))}
+  if((x.com||[]).length){tx("Commentaires",10,1);x.com.forEach(c=>tx(c.n+" : "+c.t,9))}
+  let rh=0;if((x.photos||[]).length){tx("Photos",10,1);x.photos.slice(0,6).forEach((p,i)=>{try{const pr=d.getImageProperties(p),w=85,h=w*pr.height/pr.width;if(i%2===0){if(y+h>285){d.addPage();y=18}d.addImage(p,"JPEG",15,y,w,h);rh=h}else{d.addImage(p,"JPEG",110,y,w,h);y+=Math.max(rh,h)+4;rh=0}}catch(e){}});if(rh)y+=rh+4}
+  y+=4;d.setDrawColor(200);d.line(15,y,195,y);y+=8});
+ dl("rapport.pdf",new Uint8Array(d.output("arraybuffer")))}
+function dashR(){const el=$("#dash");if(!el)return;const all=S.cards,cl=all.filter(x=>x.col===last()),lt=all.filter(late).length,
+ days=cl.filter(x=>x.closedAt&&x.cr).map(x=>{const m=/(\d+)\/(\d+)\/(\d+)/.exec(x.closedAt);return m?(new Date(+m[3],m[2]-1,+m[1])-x.cr)/864e5:null}).filter(v=>v!==null&&v>=0),
+ avg=days.length?(days.reduce((a,b)=>a+b,0)/days.length).toFixed(1):"—",
+ cnt=(arr,f)=>{const o={};arr.forEach(x=>{const k=f(x);if(k)o[k]=(o[k]||0)+1});return Object.entries(o)},
+ bars=(rows,max)=>rows.map(([k,v])=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0"><span style="width:110px;font-size:13px">${esc(k)}</span><div class="bar" style="flex:1;margin:0"><i style="width:${Math.round(100*v/max)}%"></i></div><b>${v}</b></div>`).join(""),
+ byCol=S.cols.map(c=>[c.name,all.filter(x=>x.col===c.id).length]),byCat=cnt(all,x=>x.cat),
+ byIv=cnt(all.flatMap(x=>[...new Set((x.iv||[]).map(p=>p.n))].map(n=>({n}))),x=>x.n).sort((a,b)=>b[1]-a[1]).slice(0,8),
+ box=(t,v)=>`<div class="item" style="flex-direction:column;align-items:flex-start;flex:1;min-width:130px"><small style="color:var(--mu)">${t}</small><b style="font-size:24px">${v}</b></div>`,mx=Math.max(1,all.length);
+ el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">${box("Tâches",all.length)}${box("Clôturées",cl.length)}${box("En retard",lt)}${box("Délai moyen (jours)",avg)}</div><div class="item" style="display:block"><b>Par étape</b>${bars(byCol,mx)}</div><div class="item" style="display:block"><b>Par catégorie</b>${bars(byCat,mx)}</div><div class="item" style="display:block"><b>Par intervenant</b>${byIv.length?bars(byIv,Math.max(...byIv.map(v=>v[1]))):"<br><small style='color:var(--mu)'>Aucun intervenant renseigné</small>"}</div>`}
+function pdfR(list,title){if(!window.jspdf){toast("PDF indisponible");return}
+ const d=new window.jspdf.jsPDF(),br=S.brand||{},hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),A=hx("#04506e"),B=hx("#00214a"),C=hx("#ecf1f5"),T=hx("#033d60"),WH=[255,255,255],W=210;let y=0;
+ const mix=u=>A.map((a,i)=>Math.round(a+(B[i]-a)*u)),pts=[[0,34],[.29,20],[.62,34],[1,43]];
+ const hw=u=>{for(let i=0;i<3;i++){const[u0,h0]=pts[i],[u1,h1]=pts[i+1];if(u<=u1){const t=(u-u0)/(u1-u0);return h0+(h1-h0)*t*t*(3-2*t)}}return 43};
+ const band=big=>{const n=105,w=W/n;for(let i=0;i<n;i++){const u=(i+.5)/n,h=big?hw(u):9;if(big){d.setFillColor(...C);d.rect(i*w,0,w+.3,h+4*(1-u),"F")}d.setFillColor(...mix(u));d.rect(i*w,0,w+.3,h,"F")}};
+ const txt=(t,x0,yy,sz,b,col)=>{d.setFontSize(sz);d.setFont("helvetica",b?"bold":"normal");d.setTextColor(...(col||T));d.text(String(t),x0,yy)};
+ const wrap=(t,w,sz)=>{d.setFontSize(sz);return d.splitTextToSize(String(t||""),w)};
+ const cont=()=>{d.addPage();band(false);y=18},need=h=>{if(y+h>284)cont()};
+ const bx=(label,ls,x0,w,h)=>{d.setDrawColor(...A);d.setLineWidth(.6);d.rect(x0,y,w,h);d.setFillColor(...A);d.rect(x0,y,Math.min(w,label.length*2.2+16),8.5,"F");txt(label,x0+6,y+6,10,0,WH);ls.forEach((l,i)=>txt(l,x0+4,y+15+i*4.4,9))};
+ const lines=(arr,w)=>[].concat(...arr.map(s=>wrap(s,w,9)));
+ const table=(heads,rows)=>{rows=rows.length?rows:[["","",""],["","",""],["","",""]];need(17);d.setFillColor(...T);d.rect(15,y,180,9,"F");const cx=[20,100,155];heads.forEach((h,i)=>txt(h,cx[i],y+6,10,0,WH));y+=9;rows.forEach((r,k)=>{need(8);if(k%2){d.setFillColor(...C);d.rect(15,y,180,8,"F")}r.forEach((c,i)=>txt(d.splitTextToSize(String(c),i?50:78)[0]||"",cx[i],y+5.5,9));y+=8});y+=6};
+ list.forEach((x,k)=>{if(k)d.addPage();band(true);
+  if(br.logo){try{d.addImage(br.logo,"PNG",12,8,14,14)}catch(e){}}
+  txt(br.name||"",br.logo?29:12,17,13,1,WH);txt("Fiche d'interventions",122,13,18,1,WH);txt("N° "+x.id.slice(0,6).toUpperCase(),122,24,16,1,WH);
+  y=52;const tl=wrap(x.title,180,12);tl.forEach((l,i)=>txt(l,15,y+i*5.5,12,1));y+=tl.length*5.5+4;
+  const iv=[...new Set((x.iv||[]).map(p=>p.n))].join(", ")||"-",deb=x.cr?new Date(x.cr).toLocaleString("fr-FR"):crd(x),fin=x.closedAt||"En cours";
+  const L=["Date et heure de début : "+deb,"Date et heure de fin : "+fin].concat(wrap("Intervenant : "+iv,90,10)),R=wrap("Nom du client : "+(x.client||""),88,10).concat(wrap("Adresse : "+(x.addr||""),88,10));
+  L.forEach((l,i)=>txt(l,15,y+i*6,10));R.forEach((l,i)=>txt(l,108,y+i*6,10));y+=Math.max(L.length,R.length)*6+6;
+  const nat=lines([x.cat+" - "+x.sector,"Priorité : "+x.prio,"Assigné à : "+x.who,"Relevé : "+(x.rel?x.rel.t:"-")],78),obs=lines((x.com||[]).map(c=>c.n+" : "+c.t),78),h=Math.max(36,Math.max(nat.length,obs.length)*4.4+18);
+  need(h);bx("Nature de l'intervention",nat,15,87,h);bx("Observations",obs,108,87,h);y+=h+6;
+  const ds=lines([x.desc||"",x.due?"Échéance : "+x.due:"",x.montant?"Montant : "+x.montant+" "+x.devise:"",x.gps?"Position GPS : "+x.gps:"",(x.att||[]).length?"Fichiers joints : "+x.att.map(a=>a.n).join(", "):""].filter(Boolean),172),h2=Math.max(40,ds.length*4.4+18);
+  need(h2);bx("Description",ds,15,180,h2);y+=h2+6;
+  table(["Équipements","Modèle","Type"],x.rel?Object.entries(x.rel.v).filter(e=>e[1]).map(e=>[e[0],e[1],x.rel.t]):[]);
+  table(["Contrôles","Statut","Catégorie"],x.checks.map(c=>[c.t,c.d?"OK":"À faire",x.cat]));
+  const ph=x.photos||[],n=Math.max(2,Math.min(6,ph.length)),nn=n+(n%2);
+  need(80);bx("Photos",[],15,180,.1);y+=12;
+  for(let i=0;i<nn;i++){const col=i%2,xx=col?108:15;if(!col)need(66);d.setDrawColor(...A);d.setLineWidth(.4);d.rect(xx,y,87,62);
+   if(ph[i]){try{const pr=d.getImageProperties(ph[i]),s=Math.min(85/pr.width,60/pr.height),w=pr.width*s,hh=pr.height*s;d.addImage(ph[i],"JPEG",xx+(87-w)/2,y+(62-hh)/2,w,hh)}catch(e){}}else txt("Photo "+(i+1),xx+4,y+6,8,0,[150,160,170]);
+   if(col)y+=66}
+ });
+ dl("rapport.pdf",new Uint8Array(d.output("arraybuffer")))}
+function dashR(){const el=$("#dash");if(!el||el.offsetParent===null)return;
+ const all=S.cards.filter(x=>!S.filter||x.sector===S.filter),L=last(),cl=all.filter(x=>x.col===L),op=all.filter(x=>x.col!==L),lt=all.filter(late),DAY=864e5,now=Date.now(),
+ ts=s=>{const m=/(\d+)\/(\d+)\/(\d+)/.exec(s||"");return m?new Date(+m[3],m[2]-1,+m[1]).getTime():0},
+ cT=x=>x.cr||ts((x.log&&x.log[0]||[])[0]),clT=x=>(x.dates&&x.dates[L])||ts(x.closedAt),dueT=x=>new Date(x.due+"T00:00:00").getTime(),
+ fmt=t=>new Date(t).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"}),pct=(a,b)=>b?Math.round(100*a/b):0,
+ days=cl.map(x=>(clT(x)-cT(x))/DAY).filter(v=>v>=0),avg=days.length?(days.reduce((a,b)=>a+b,0)/days.length).toFixed(1):"—",
+ ck=all.reduce((a,x)=>a+x.checks.length,0),ckd=all.reduce((a,x)=>a+x.checks.filter(k=>k.d).length,0),
+ w0=(()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()})(),
+ wk=[...Array(8)].map((_,i)=>{const s=w0-(7-i)*7*DAY,e=s+7*DAY;return{s,c:all.filter(x=>cT(x)>=s&&cT(x)<e).length,k:cl.filter(x=>clT(x)>=s&&clT(x)<e).length}}),
+ in7=op.filter(x=>x.due&&!late(x)&&dueT(x)<=now+7*DAY).sort((a,b)=>dueT(a)-dueT(b)),lateL=[...lt].sort((a,b)=>dueT(a)-dueT(b)),
+ recent=[...cl].sort((a,b)=>clT(b)-clT(a)),
+ P=c=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:14px;min-width:0">${c}</div>`,
+ box=(t,v,c)=>`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:12px 14px"><small style="color:var(--mu)">${t}</small><div style="font-size:26px;font-weight:700;color:${c||"inherit"}">${v}</div></div>`,
+ bars=(rows,max,c)=>rows.map(([k,v])=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="width:105px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</span><div class="bar" style="flex:1;margin:0"><i style="width:${Math.round(100*v/max)}%;${c?"background:"+c:""}"></i></div><b>${v}</b></div>`).join("")||"<small style='color:var(--mu)'>Aucune donnée</small>",
+ cnt=(arr,f)=>{const o={};arr.forEach(x=>{const k=f(x);if(k)o[k]=(o[k]||0)+1});return Object.entries(o).sort((a,b)=>b[1]-a[1])},
+ COL=["#3b5bfd","#f59e0b","#8b5cf6","#10b981","#ef4444","#06b6d4","#ec4899","#84cc16"],
+ byCol=S.cols.map((c,i)=>({n:c.name,v:all.filter(x=>x.col===c.id).length,c:COL[i%8]})),tot=Math.max(1,all.length),R=40,CI=2*Math.PI*R;let off=0;
+ const donut=`<svg viewBox="0 0 120 120" style="width:150px;height:150px;flex:none"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--sf2)" stroke-width="18"/>${byCol.map(s=>{const len=CI*s.v/tot,o=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.c}" stroke-width="18" stroke-dasharray="${len} ${CI-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return o}).join("")}<text x="60" y="60" text-anchor="middle" font-size="20" font-weight="700" fill="currentColor">${all.length}</text><text x="60" y="74" text-anchor="middle" font-size="9" fill="var(--mu)">tâches</text></svg>`,
+ legend=byCol.map(s=>`<div style="display:flex;align-items:center;gap:6px;font-size:13px;margin:4px 0"><i style="width:10px;height:10px;border-radius:3px;background:${s.c}"></i><span style="flex:1">${esc(s.n)}</span><b>${s.v}</b></div>`).join(""),
+ ring=(p,lab,c)=>`<div style="text-align:center"><svg viewBox="0 0 80 80" style="width:96px"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--sf2)" stroke-width="9"/><circle cx="40" cy="40" r="32" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${201*p/100} 201" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">${p}%</text></svg><div style="font-size:12px;color:var(--mu)">${lab}</div></div>`,
+ mx=Math.max(1,...wk.map(w=>Math.max(w.c,w.k))),
+ chart=`<svg viewBox="0 0 320 150" style="width:100%"><text x="2" y="24" font-size="8" fill="var(--mu)">${mx}</text>${[0,.5,1].map(f=>`<line x1="14" x2="316" y1="${120-100*f}" y2="${120-100*f}" stroke="var(--bd)" stroke-width=".6"/>`).join("")}${wk.map((w,i)=>{const x0=22+i*37,h1=100*w.c/mx,h2=100*w.k/mx;return `<rect x="${x0}" y="${120-h1}" width="13" height="${h1}" rx="2" fill="#3b5bfd"/><rect x="${x0+15}" y="${120-h2}" width="13" height="${h2}" rx="2" fill="#10b981"/><text x="${x0+14}" y="136" text-anchor="middle" font-size="8" fill="var(--mu)">${fmt(w.s)}</text>`}).join("")}</svg><div style="font-size:12px;color:var(--mu)"><i style="display:inline-block;width:10px;height:10px;background:#3b5bfd;border-radius:3px"></i> Créées &nbsp; <i style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:3px"></i> Clôturées</div>`,
+ proj={};all.forEach(x=>{const p=x.title.includes(" – ")?x.title.split(" – ")[0]:"Sans chantier";(proj[p]=proj[p]||[]).push(x)});
+ const prow=Object.entries(proj).map(([n,a])=>{const c=a.filter(x=>x.col===L).length,l=a.filter(late).length,s=a.some(x=>x.col!==L&&x.due&&dueT(x)<=now+7*DAY);return{n,t:a.length,c,l,p:pct(c,a.length),r:l?"#ef4444":s?"#f59e0b":"#10b981"}}).sort((a,b)=>b.l-a.l||a.p-b.p).slice(0,8),
+ projH=prow.map(r=>`<div style="display:flex;align-items:center;gap:8px;margin:7px 0"><i style="width:10px;height:10px;border-radius:50%;background:${r.r};flex:none"></i><span style="width:120px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.n)}</span><div class="bar" style="flex:1;margin:0"><i style="width:${r.p}%"></i></div><b style="width:70px;text-align:right;font-size:13px">${r.p}% · ${r.c}/${r.t}</b></div>`).join(""),
+ row=(x,r)=>`<div data-e="${x.id}" style="cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><span>${esc(x.title)}</span><small style="color:var(--mu);white-space:nowrap">${r}</small></div>`,
+ lp=(t,a,f)=>P(`<b>${t}</b>`+(a.length?a.slice(0,6).map(f).join(""):`<div style="color:var(--mu);font-size:13px;margin-top:6px">Rien à signaler</div>`)),
+ mt=all.filter(x=>x.montant&&!isNaN(parseFloat(String(x.montant).replace(",",".")))),sums={};mt.forEach(x=>{const v=parseFloat(String(x.montant).replace(",",".")),d=x.devise||"EUR",o=sums[d]=sums[d]||{a:0,c:0};o.a+=v;if(x.col===L)o.c+=v});
+ const money=Object.entries(sums).map(([d,o])=>`<div style="margin:6px 0"><b style="font-size:20px">${o.a.toLocaleString("fr-FR")} ${d}</b><br><small style="color:var(--mu)">dont clôturé : ${o.c.toLocaleString("fr-FR")} ${d}</small></div>`).join(""),
+ work=cnt(op.flatMap(x=>[...new Set((x.iv||[]).map(p=>p.n))].map(n=>({n}))),x=>x.n).slice(0,8);
+ el.innerHTML=`<div style="font-size:13px;color:var(--mu);margin-bottom:8px">Vue d’ensemble – ${esc(S.filter||"tous les secteurs")} · mis à jour ${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</div>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px">${box("Tâches",all.length)}${box("En cours",op.length,"#3b5bfd")}${box("Clôturées",cl.length,"#10b981")}${box("En retard",lt.length,lt.length?"#ef4444":"")}${box("À échéance (7 j)",in7.length,in7.length?"#f59e0b":"")}${box("Clôturées cette semaine",wk[7].k)}${box("Délai moyen (jours)",avg)}</div>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin-top:12px">
+ ${P(`<b>Avancement global</b><div style="display:flex;justify-content:space-around;margin-top:8px">${ring(pct(cl.length,all.length),"Tâches clôturées","#10b981")}${ring(pct(ckd,ck),"Contrôles validés","#3b5bfd")}${ring(pct(all.length-lt.length,all.length),"Dans les délais",lt.length?"#f59e0b":"#10b981")}</div>`)}
+ ${P(`<b>Répartition par étape</b><div style="display:flex;align-items:center;gap:14px;margin-top:8px">${donut}<div style="flex:1">${legend}</div></div>`)}
+ ${P(`<b>Créations et clôtures (8 semaines)</b>${chart}`)}
+ ${P(`<b>Avancement par chantier</b>${projH||"<small style='color:var(--mu)'>Aucun chantier</small>"}<small style="color:var(--mu)">🟢 dans les délais · 🟠 échéance ≤ 7 j · 🔴 retard</small>`)}
+ ${lp("⚠ En retard",lateL,x=>row(x,Math.max(1,Math.floor((now-dueT(x))/DAY))+" j de retard"))}
+ ${lp("⏰ Échéances à venir (7 jours)",in7,x=>row(x,fmt(dueT(x))))}
+ ${lp("✅ Récemment clôturées",recent,x=>row(x,fmt(clT(x)||now)))}
+ ${P(`<b>Par catégorie</b>${bars(cnt(all,x=>x.cat),tot)}`)}
+ ${P(`<b>Par secteur</b>${bars(cnt(all,x=>x.sector),tot,"#8b5cf6")}`)}
+ ${P(`<b>Charge par intervenant (tâches ouvertes)</b>${bars(work,Math.max(1,...work.map(v=>v[1])),"#f59e0b")}`)}
+ ${money?P(`<b>Montants suivis (Vente)</b>${money}`):""}
+ </div>`;
+ el.onclick=e=>{const r=e.target.closest("[data-e]");if(r)edit(r.dataset.e)}}
+function impX(f){if(!window.XLSX){toast("Import Excel indisponible");return}const r=new FileReader();r.onload=()=>{try{const wb=XLSX.read(r.result,{type:"array"});let n=0;wb.SheetNames.forEach(sn=>{XLSX.utils.sheet_to_json(wb.Sheets[sn]).forEach(row=>{const x=S.cards.find(k=>k.id===row.id);if(!x)return;if(row.titre)x.title=String(row.titre);if(row.observations!==undefined)x.desc=String(row.observations);if(row.echeance!==undefined)x.due=String(row.echeance);const t=x.rel&&x.rel.t;if(t&&ALLR[t])ALLR[t].forEach(([l])=>{if(row[l]!==undefined)x.rel.v[l]=String(row[l])});x.upd=Date.now();n++})});render();toast(n+" ligne(s) mise(s) à jour")}catch(e){toast("Fichier non reconnu")}};r.readAsArrayBuffer(f)}
+const ENk=Object.keys(EN).sort((a,b)=>b.length-a.length);let busy=false;
+function tr(root){if(busy)return;busy=true;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];let n;while(n=w.nextNode())L.push(n);
+ L.forEach(n=>{const p=n.parentElement;if(!p||p.closest("#bname,script,style,textarea,option,[contenteditable]"))return;if(n.__fr===undefined)n.__fr=n.nodeValue;let t=n.__fr;if(S.lang==="en")ENk.forEach(k=>{if(t.includes(k))t=t.split(k).join(EN[k])});if(n.nodeValue!==t)n.nodeValue=t});busy=false}
+new MutationObserver(()=>{if(S.lang==="en")tr(document.body)}).observe(document.body,{childList:true,subtree:true});
+const applyBrand=()=>{const b=S.brand||{},r=document.documentElement.style;if(b.color){r.setProperty("--ac",b.color);r.setProperty("--h1",b.color);r.setProperty("--h2","color-mix(in srgb,"+b.color+" 55%,#6a45f0)")}
+ if(b.name)$("#bname").textContent=b.name;else $("#bname").innerHTML="Terrain<b>Sync</b>";
+ $("#blogo").innerHTML=b.logo?`<img src="${b.logo}" alt="" style="width:26px;height:26px;border-radius:7px;object-fit:cover">`:"⬡"};
+$("#cfg").onclick=()=>{const m=$("#modal"),b=S.brand||{};m.classList.remove("hide");m.onclick=e=>{if(e.target===m)m.classList.add("hide")};
+ m.innerHTML=`<div class="box"><b>Entreprise</b><label style="margin-top:8px">Nom de l’entreprise</label><input type="text" id="c_n" value="${esc(b.name)}"><div class="row"><div><label>Couleur principale</label><input type="color" id="c_c" value="${b.color||"#3b5bfd"}" style="width:100%;height:38px;border:0;background:none"></div><div><label>Logo</label><input type="file" id="c_f" accept="image/*"></div></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn" id="c_r">Réinitialiser</button><button class="btn pri" id="c_ok">Appliquer</button></div></div>`;
+ $("#c_f").onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=96;const s=Math.max(96/im.width,96/im.height);c.getContext("2d").drawImage(im,(96-im.width*s)/2,(96-im.height*s)/2,im.width*s,im.height*s);S.brand={...(S.brand||{}),logo:c.toDataURL("image/png")};URL.revokeObjectURL(u);toast("Logo prêt : clique Appliquer")};im.src=u};
+ $("#c_ok").onclick=()=>{S.brand={...(S.brand||{}),name:$("#c_n").value.trim(),color:$("#c_c").value};save();applyBrand();document.documentElement.lang=S.lang;tr(document.body);m.classList.add("hide")};
+ $("#c_r").onclick=()=>{S.brand={};document.documentElement.style.cssText="";save();applyBrand();tr(document.body);m.classList.add("hide")}};
+const setLangBtn=()=>{$("#lang").textContent="🌐 "+(S.lang==="en"?"EN":"FR")};
+$("#lang").onclick=()=>{S.lang=S.lang==="en"?"fr":"en";save();document.documentElement.lang=S.lang;setLangBtn();tr(document.body)};
+setTimeout(()=>{applyBrand();document.documentElement.lang=S.lang||"fr";setLangBtn();tr(document.body)},0);
+$("#fab").onclick=()=>document.querySelector('nav [data-t="ia"]').click();
+say("bot","Bonjour ! Je peux te guider dans chaque étape ou t’aider à remplir une carte. Choisis une suggestion ou écris ta question.");
+render();
+</script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js")</script>
+<script type="module" src="auth.js"></script>
+</body>
+</html>
